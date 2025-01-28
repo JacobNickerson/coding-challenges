@@ -1,9 +1,9 @@
 # Project name
-PROJECT_NAME = wc
+PROJECT_NAME = cwcc
 
 # Compiler and flags
 CXX = clang++
-CXXFLAGS = -std=c++17 -Wall -Wextra -O2
+CXXFLAGS = -std=c++20 -Wall -Wextra -O2
 
 # Directories
 SRC_DIR = src

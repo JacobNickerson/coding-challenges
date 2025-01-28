@@ -1,0 +1,36 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/clang++",
+      "-std=c++20",
+      "-Wall",
+      "-Wextra",
+      "-O2",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "build/Parser.o",
+      "src/Parser.cpp"
+    ],
+    "directory": "/home/jacobnickerson/SWE/coding-challenges/cwcc",
+    "file": "/home/jacobnickerson/SWE/coding-challenges/cwcc/src/Parser.cpp",
+    "output": "/home/jacobnickerson/SWE/coding-challenges/cwcc/build/Parser.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/clang++",
+      "-std=c++20",
+      "-Wall",
+      "-Wextra",
+      "-O2",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "build/main.o",
+      "src/main.cpp"
+    ],
+    "directory": "/home/jacobnickerson/SWE/coding-challenges/cwcc",
+    "file": "/home/jacobnickerson/SWE/coding-challenges/cwcc/src/main.cpp",
+    "output": "/home/jacobnickerson/SWE/coding-challenges/cwcc/build/main.o"
+  }
+]
