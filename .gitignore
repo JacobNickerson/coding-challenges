@@ -1,0 +1,6 @@
+#CWCC
+cwcc/.*
+cwcc/bin/
+cwcc/build
+cwcc/test.txt
+cwcc/main.sh

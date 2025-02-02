@@ -27,10 +27,10 @@ results operator-(const results& A, const results& B) {
 
 void results::print(const options& opt, std::string filename) {
     std::cout << " ";
-    if (opt.lines) { std::cout << std::setw(6) << std::right << lines << ' '; }
-    if (opt.words) { std::cout << std::setw(6) << std::right << words << ' '; }
-    if (opt.chars) { std::cout << std::setw(6) << std::right << chars << ' '; }
-    if (opt.bytes) { std::cout << std::setw(6) << std::right << bytes << ' '; }
-    if (opt.maxLength) { std::cout << std::setw(6) << std::right << maxLength << ' '; }
+    if (opt.lines) { std::cout << std::setw(opt.maxResultWidth) << std::right << lines << ' '; }
+    if (opt.words) { std::cout << std::setw(opt.maxResultWidth) << std::right << words << ' '; }
+    if (opt.chars) { std::cout << std::setw(opt.maxResultWidth) << std::right << chars << ' '; }
+    if (opt.bytes) { std::cout << std::setw(opt.maxResultWidth) << std::right << bytes << ' '; }
+    if (opt.maxLength) { std::cout << std::setw(opt.maxResultWidth) << std::right << maxLength << ' '; }
     std::cout << std::left << filename << std::endl;
 }

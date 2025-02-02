@@ -14,6 +14,7 @@ int main(int argc, char* argv[]) {
 		if (arg.starts_with("-")) { // command flag
 			if (arg.length() == 1) {
 				filenames.push_back("\0STDIN");
+				settings.parseFlag(arg); 
 				continue;
 			}
 			OptionParseType returnCode = settings.parseFlag(arg);
@@ -63,16 +64,19 @@ int main(int argc, char* argv[]) {
 	} 
 	if (filenames.size() > 0) {
 		results total;
+		std::vector<results> resultsVector;
 		for (const auto& filename : filenames) {
 			if (filename != "\0STDIN") {
-				auto file = std::make_unique<std::ifstream>(filename);
+				auto file = std::make_unique<std::ifstream>(filename, std::ios::binary);
 				if (!file->is_open()) {
 					std::cerr << "cwcc: " << filename << ": No such file or directory\n";
+					if (!settings.readSTDIN) { resultsVector.push_back(results()); } // push an empty value to keep indices of results and their filenames the same
 					continue;
 				}
 				Parser parser(file, filename);
 				parser.parseFile();
-				parser.results().print(settings, filename);
+				if (settings.readSTDIN) { parser.results().print(settings, filename); }
+				else { resultsVector.push_back(parser.results()); }
 				total += parser.results();
 			} else {
 				auto STDIN = std::make_unique<std::ifstream>("/dev/stdin");
@@ -86,7 +90,12 @@ int main(int argc, char* argv[]) {
 				total += stdinparser.results();
 			}
 		}
-		total.print(settings, "total");
+		if (!settings.readSTDIN) {
+			for (unsigned int i{0}; i < resultsVector.size(); i++) {
+				resultsVector[i].print(settings, filenames[i]);
+			}
+		}
+		if (filenames.size() > 1) { total.print(settings, "total"); }
 	}
 
 	return 0;

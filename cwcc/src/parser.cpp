@@ -2,23 +2,28 @@
 #include <fstream>
 #include <sstream>
 #include <cstdio>
+#include <algorithm>
 
 Parser::Parser(std::unique_ptr<std::ifstream>& stream, std::string filename) : filename(filename), stream(std::move(stream)) {}
 
 void Parser::parseFile() {
     if (!stream) { return; }
-    std::string line;
-    while (std::getline(*stream, line)) {
-        result.bytes += line.size();
-        result.chars += line.length();
-        result.lines++;
-        if (line.length() > result.maxLength) { result.maxLength = line.length(); }
-        std::stringstream linestream(line);
+        std::string content((std::istreambuf_iterator<char>(*stream)), std::istreambuf_iterator<char>());
+        result.bytes = content.size();
+        result.chars = content.length();
+        result.lines = std::count(content.begin(), content.end(), '\n');
+        std::istringstream contentstream(content);
         std::string garbageCan;
-        while (std::getline(linestream, garbageCan, ' ')) {
+        auto it = content.begin();
+        auto lastBreak = content.begin();
+        while ((it = std::find(it, content.end(), '\n')) != content.end()) {  //TODO: Fix max line length calculations
+            size_t lineLength = std::distance(lastBreak, it);
+            result.maxLength = std::max(lineLength, result.maxLength); 
+            lastBreak = ++it;
+        }
+        while (contentstream >> garbageCan) {
             result.words++;
         }
-    }
 }
 
 void Parser::closeFile() {

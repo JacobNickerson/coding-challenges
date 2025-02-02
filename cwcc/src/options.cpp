@@ -13,7 +13,8 @@ options::options() {
         {"--max-line-length",[this](){ return this-> toggleMaxLineLength(); }},
         {"-w",[this](){ return this->toggleWords(); }},
         {"--words",[this](){ return this->toggleWords(); }},
-        {"--help", [this](){ return this->displayHelpMenu(); }}
+        {"--help", [this](){ return this->displayHelpMenu(); }},
+        {"-", [this](){ return this->toggleReadSTDIN(); }}
     };
 }
 
@@ -91,4 +92,10 @@ OptionParseType options::toggleMaxLineLength() {
 OptionParseType options::toggleWords() {
     words = true;
     return OptionParseType::setting;
+}
+
+OptionParseType options::toggleReadSTDIN() {
+    readSTDIN = true;
+    maxResultWidth = 6;
+    return OptionParseType::filename;
 }
