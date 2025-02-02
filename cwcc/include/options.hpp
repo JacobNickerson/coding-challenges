@@ -4,25 +4,33 @@
 #include <functional>
 #include <string>
 
+enum class OptionParseType {
+    setting, invalid, filename, helpmenu
+};
+
 class options{
     public:
         options();
         void setDefault();
-        bool parseFlag(std::string command); 
+        OptionParseType parseFlag(std::string command); 
 
-        void toggleBytes();
-        void toggleChars();
-        void toggleLines();
-        void toggleMaxLineLength();
-        void toggleWords();
+        OptionParseType toggleBytes();
+        OptionParseType toggleChars();
+        OptionParseType toggleLines();
+        OptionParseType toggleReadFile(const std::string& command);
+        OptionParseType toggleMaxLineLength();
+        OptionParseType toggleWords();
         
-        void displayHelpMenu();
+        OptionParseType displayHelpMenu();
 
         bool helpMenu = false;
         bool bytes = false;
         bool chars = false;
         bool lines = false;
+        bool readFile = false;
         bool maxLength = false;
         bool words = false;
-        std::unordered_map<std::string, std::function<void()>> commandFlags;
+
+        std::string fileList = "";
+        std::unordered_map<std::string, std::function<OptionParseType()>> commandFlags;
 };

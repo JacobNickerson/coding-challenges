@@ -4,7 +4,6 @@
 #include <memory>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 
 int main(int argc, char* argv[]) {
 	options settings;
@@ -17,17 +16,38 @@ int main(int argc, char* argv[]) {
 				filenames.push_back("\0STDIN");
 				continue;
 			}
-			defaultSettings = false;
-			if (!settings.parseFlag(arg)) {
-				return 1;
-			} else if (settings.helpMenu) {
-				return 0;
+			OptionParseType returnCode = settings.parseFlag(arg);
+			switch(returnCode) {
+				case OptionParseType::invalid:
+					return 1;
+				case OptionParseType::helpmenu:
+					return 0;
+				case OptionParseType::setting:
+					defaultSettings = false;
+					break;
+				case OptionParseType::filename:
+					break;
 			}
 		} else {
 			filenames.push_back(arg);
 		}
 	}
 	if (defaultSettings) { settings.setDefault(); }
+	if (settings.readFile) {
+		if (filenames.size() > 0) {
+			std::string operand{filenames[0]};
+			if (filenames[0] == "\0STDIN") { operand = "-"; }
+			std::cerr << "cwcc: extra operand '" << operand << "'\n";
+			std::cerr << "file operands cannot be combined with --files0-from\n";
+			std::cerr << "Try 'cwcc --help' for more information.\n";
+			return 1;
+		}
+		auto fileList = std::ifstream(settings.fileList);
+		std::string filename;
+		while (std::getline(fileList, filename, '\0')) {
+			filenames.push_back(filename);
+		}
+	}
 
 	if (filenames.size() <= 0) {
 		results result;
@@ -43,7 +63,7 @@ int main(int argc, char* argv[]) {
 	} 
 	if (filenames.size() > 0) {
 		results total;
-		for (auto& filename : filenames) {
+		for (const auto& filename : filenames) {
 			if (filename != "\0STDIN") {
 				auto file = std::make_unique<std::ifstream>(filename);
 				if (!file->is_open()) {

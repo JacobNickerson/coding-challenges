@@ -3,31 +3,33 @@
 
 options::options() {
     commandFlags = {
-        {"-c", [this](){ this->toggleBytes(); }},
-        {"--bytes",[this](){ this->toggleBytes(); }},
-        {"-m",[this](){ this->toggleChars(); }},
-        {"--chars",[this](){ this->toggleChars(); }},
-        {"-l",[this](){ this->toggleLines(); }},
-        {"--lines",[this](){ this->toggleLines(); }},
-        {"-L",[this](){ this->toggleMaxLineLength(); }},
-        {"--max-line-length",[this](){ this-> toggleMaxLineLength(); }},
-        {"-w",[this](){ this->toggleWords(); }},
-        {"--words",[this](){ this->toggleWords(); }},
-        {"--help", [this](){ this->displayHelpMenu(); }}
+        {"-c", [this](){ return this->toggleBytes(); }},
+        {"--bytes",[this](){ return this->toggleBytes(); }},
+        {"-m",[this](){ return this->toggleChars(); }},
+        {"--chars",[this](){ return this->toggleChars(); }},
+        {"-l",[this](){ return this->toggleLines(); }},
+        {"--lines",[this](){ return this->toggleLines(); }},
+        {"-L",[this](){ return this->toggleMaxLineLength(); }},
+        {"--max-line-length",[this](){ return this-> toggleMaxLineLength(); }},
+        {"-w",[this](){ return this->toggleWords(); }},
+        {"--words",[this](){ return this->toggleWords(); }},
+        {"--help", [this](){ return this->displayHelpMenu(); }}
     };
 }
 
-bool options::parseFlag(std::string command) {
+OptionParseType options::parseFlag(std::string command) {
+    if (command.starts_with("--files0-from=")) {
+        return toggleReadFile(command);
+    }
     if (commandFlags.find(command) == commandFlags.end()) {
         std::cout << "cwcc: unrecognized option '" << command << "'\n";
         std::cout << "Try cwcc --help for more information.\n";
-        return false;
+        return OptionParseType::invalid;
     }
-    commandFlags[command]();
-    return true;
+    return commandFlags[command]();
 }
 
-void options::displayHelpMenu() {
+OptionParseType options::displayHelpMenu() {
     std::cout << "Usage: cwcc [OPTION]... [FILE]...\n";
     std::cout << "  or:  cwcc [OPTION]... --files0-from=F\n";
     std::cout << "Print newline, word, and byte counts for each FILE, and a total line if\n";
@@ -36,7 +38,6 @@ void options::displayHelpMenu() {
     std::cout << std::endl;
     std::cout << "With no FILE, or when FILE is -, read standard input.\n";
     std::cout << std::endl;
-    std::cout << "With no FILE, or when FILE is -, read standard input.\n";
     std::cout << "The options below may be used to select which counts are printed, always in\n";
     std::cout << "the following order: newline, word, character, byte, maximum line length.\n";
     std::cout << "  -c, --bytes            print the byte counts\n";
@@ -49,6 +50,7 @@ void options::displayHelpMenu() {
     std::cout << "  -w, --words            print the word counts\n";
     std::cout << "      --help             display this help and exit\n";
     helpMenu = true;
+    return OptionParseType::helpmenu;
 }
 
 void options::setDefault() {
@@ -59,22 +61,34 @@ void options::setDefault() {
     words = true;
 }
 
-void options::toggleBytes() {
+OptionParseType options::toggleBytes() {
     bytes = true;
+    return OptionParseType::setting;
 }
 
-void options::toggleChars() {
+OptionParseType options::toggleChars() {
     chars = true;
+    return OptionParseType::setting;
 }
 
-void options::toggleLines() {
+OptionParseType options::toggleLines() {
     lines = true;
+    return OptionParseType::setting;
 }
 
-void options::toggleMaxLineLength() {
+OptionParseType options::toggleReadFile(const std::string& command) {
+    int ind = command.find_first_of("=");
+    fileList = command.substr(ind+1, command.length());
+    readFile = true;
+    return OptionParseType::filename;
+}
+
+OptionParseType options::toggleMaxLineLength() {
     maxLength = true;
+    return OptionParseType::setting;
 }
 
-void options::toggleWords() {
+OptionParseType options::toggleWords() {
     words = true;
+    return OptionParseType::setting;
 }
