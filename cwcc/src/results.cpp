@@ -1,5 +1,6 @@
 #include <iostream>
 #include "results.hpp"
+#include <iomanip>
 
 results& results::operator+=(const results& other) {
     this->lines += other.lines; 
@@ -26,10 +27,10 @@ results operator-(const results& A, const results& B) {
 
 void results::print(const options& opt, std::string filename) {
     std::cout << " ";
-    if (opt.lines) { std::cout << lines << ' '; }
-    if (opt.words) { std::cout << words << ' ';}
-    if (opt.chars) { std::cout << chars << ' ';}
-    if (opt.bytes) { std::cout << bytes << ' ';}
-    if (opt.maxLength) { std::cout << maxLength << ' ';}
-    std::cout << filename << std::endl;
+    if (opt.lines) { std::cout << std::setw(6) << std::right << lines << ' '; }
+    if (opt.words) { std::cout << std::setw(6) << std::right << words << ' '; }
+    if (opt.chars) { std::cout << std::setw(6) << std::right << chars << ' '; }
+    if (opt.bytes) { std::cout << std::setw(6) << std::right << bytes << ' '; }
+    if (opt.maxLength) { std::cout << std::setw(6) << std::right << maxLength << ' '; }
+    std::cout << std::left << filename << std::endl;
 }
