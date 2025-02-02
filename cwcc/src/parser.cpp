@@ -30,6 +30,6 @@ void Parser::closeFile() {
     stream.reset();
 }
 
-results Parser::results() {
+results& Parser::results() {
     return result;
 }

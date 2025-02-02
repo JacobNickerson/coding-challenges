@@ -76,7 +76,11 @@ int main(int argc, char* argv[]) {
 				Parser parser(file, filename);
 				parser.parseFile();
 				if (settings.readSTDIN) { parser.results().print(settings, filename); }
-				else { resultsVector.push_back(parser.results()); }
+				else {
+					parser.results().setMaxResultWidth();
+					settings.maxResultWidth = std::max(settings.maxResultWidth, parser.results().maxResultWidth);
+					resultsVector.push_back(parser.results());
+				}
 				total += parser.results();
 			} else {
 				auto STDIN = std::make_unique<std::ifstream>("/dev/stdin");

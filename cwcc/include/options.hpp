@@ -32,7 +32,7 @@ class options{
         bool words = false;
         bool readSTDIN = false;
 
-        int maxResultWidth{0};
+        size_t maxResultWidth{0};
 
         std::string fileList = "";
         std::unordered_map<std::string, std::function<OptionParseType()>> commandFlags;

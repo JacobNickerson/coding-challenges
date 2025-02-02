@@ -8,8 +8,10 @@ struct results {
     size_t chars{0};
     size_t bytes{0};
     size_t maxLength{0};
-    int maxLineLength{0};
+    size_t maxResultWidth{0};
+
     void print(const options& opt, std::string filename);
+    void setMaxResultWidth();
 
     results& operator+=(const results& other);
     results& operator-=(const results& other);

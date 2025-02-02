@@ -96,6 +96,6 @@ OptionParseType options::toggleWords() {
 
 OptionParseType options::toggleReadSTDIN() {
     readSTDIN = true;
-    maxResultWidth = 6;
+    maxResultWidth = 7;
     return OptionParseType::filename;
 }

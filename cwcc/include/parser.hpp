@@ -22,7 +22,7 @@ class Parser {
         
         // Returns results member of the file, should only be called after parseFile(), otherwise
         // results will all be initialized to zero
-        results results();
+        results& results();
 
     private:
 
