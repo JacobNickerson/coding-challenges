@@ -1,15 +1,12 @@
 #include "parser.hpp"
+#include <fstream>
 #include <sstream>
 #include <cstdio>
-#include <iostream>
 
-Parser::Parser(std::unique_ptr<std::istream> stream, std::string filename) : filename(filename), stream(std::move(stream)) {}
+Parser::Parser(std::unique_ptr<std::ifstream>& stream, std::string filename) : filename(filename), stream(std::move(stream)) {}
 
 void Parser::parseFile() {
     if (!stream) { return; }
-    if (auto check = dynamic_cast<std::fstream*>(stream.get())) { 
-        if (!check->is_open()) { return; }
-    }
     std::string line;
     while (std::getline(*stream, line)) {
         result.bytes += line.size();

@@ -35,7 +35,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 clang-tidy: $(SRCS)
 	@for file in $(SRCS); do \
 		echo "Running clang-tidy on $$file..."; \
-		clang-tidy $$file -- -I$(INCLUDE_DIR); \
+		clang-tidy -std=c++20 $$file -- -I$(INCLUDE_DIR); \
 	done
 
 # Clang-Format: Automatically format the code

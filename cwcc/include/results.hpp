@@ -3,12 +3,15 @@
 #include "options.hpp"
 
 struct results {
-    int lines{0};
-    int words{0};
-    int chars{0};
-    int bytes{0};
-    int maxLength{0};
-    void print(const options& opt, std::string);
+    size_t lines{0};
+    size_t words{0};
+    size_t chars{0};
+    size_t bytes{0};
+    size_t maxLength{0};
+    void print(const options& opt, std::string filename);
+
+    results& operator+=(const results& other);
+    results& operator-=(const results& other);
 };
 
 results operator+(const results& A, const results& B);

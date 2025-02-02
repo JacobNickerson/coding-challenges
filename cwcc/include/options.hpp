@@ -18,6 +18,7 @@ class options{
         
         void displayHelpMenu();
 
+        bool helpMenu = false;
         bool bytes = false;
         bool chars = false;
         bool lines = false;
