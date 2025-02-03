@@ -25,6 +25,7 @@ void Parser::parseFile() {
             result.words++;
         }
         result.valid = true;
+        result.setMaxResultWidth();
 }
 
 void Parser::closeFile() {
