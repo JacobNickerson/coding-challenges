@@ -8,14 +8,12 @@
 int main(int argc, char* argv[]) {
 	options settings;
 	std::vector<std::string> filenames;
-	bool defaultSettings{true};
+	bool defaultSettings{true}; 
 	for (int i{1}; i < argc; i++) {
 		std::string arg(argv[i]);
 		if (arg.starts_with("-")) { // command flag
 			if (arg.length() == 1) {
-				filenames.push_back("\0STDIN");
-				settings.parseFlag(arg); 
-				continue;
+				filenames.push_back("\0STDIN"); 
 			}
 			OptionParseType returnCode = settings.parseFlag(arg);
 			switch(returnCode) {
@@ -26,7 +24,7 @@ int main(int argc, char* argv[]) {
 				case OptionParseType::setting:
 					defaultSettings = false;
 					break;
-				case OptionParseType::filename:
+				case OptionParseType::filetype:
 					break;
 			}
 		} else {
@@ -62,6 +60,7 @@ int main(int argc, char* argv[]) {
 		result += stdinparser.results();
 		result.print(settings, "");
 	} 
+
 	if (filenames.size() > 0) {
 		results total;
 		std::vector<results> resultsVector;
@@ -77,8 +76,7 @@ int main(int argc, char* argv[]) {
 				parser.parseFile();
 				if (settings.readSTDIN) { parser.results().print(settings, filename); }
 				else {
-					parser.results().setMaxResultWidth();
-					settings.maxResultWidth = std::max(settings.maxResultWidth, parser.results().maxResultWidth);
+					settings.setMaxResultWidth(parser.results());
 					resultsVector.push_back(parser.results());
 				}
 				total += parser.results();

@@ -4,36 +4,41 @@
 #include <functional>
 #include <string>
 
+struct results;
+
 enum class OptionParseType {
-    setting, invalid, filename, helpmenu
+    setting, invalid, filetype, helpmenu
 };
 
-class options{
-    public:
-        options();
-        void setDefault();
-        OptionParseType parseFlag(std::string command); 
+struct options{
+    options();
 
-        OptionParseType toggleBytes();
-        OptionParseType toggleChars();
-        OptionParseType toggleLines();
-        OptionParseType toggleReadFile(const std::string& command);
-        OptionParseType toggleMaxLineLength();
-        OptionParseType toggleWords();
-        OptionParseType toggleReadSTDIN();
-        OptionParseType displayHelpMenu();
+    void setDefault();
+    void setMaxResultWidth(const results& result);
 
-        bool helpMenu = false;
-        bool bytes = false;
-        bool chars = false;
-        bool lines = false;
-        bool readFile = false;
-        bool maxLength = false;
-        bool words = false;
-        bool readSTDIN = false;
+    OptionParseType parseFlag(std::string command); 
 
-        size_t maxResultWidth{0};
+    OptionParseType toggleBytes();
+    OptionParseType toggleChars();
+    OptionParseType toggleLines();
+    OptionParseType toggleReadFile(const std::string& command);
+    OptionParseType toggleMaxLineLength();
+    OptionParseType toggleWords();
+    OptionParseType toggleReadSTDIN();
+    OptionParseType displayHelpMenu();
 
-        std::string fileList = "";
-        std::unordered_map<std::string, std::function<OptionParseType()>> commandFlags;
+
+    bool helpMenu = false;
+    bool bytes = false;
+    bool chars = false;
+    bool lines = false;
+    bool readFile = false;
+    bool maxLength = false;
+    bool words = false;
+    bool readSTDIN = false;
+
+    size_t maxResultWidth{0};
+
+    std::string fileList = "";
+    std::unordered_map<std::string, std::function<OptionParseType()>> commandFlags;
 };

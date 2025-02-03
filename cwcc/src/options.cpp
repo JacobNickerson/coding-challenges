@@ -1,5 +1,6 @@
-#include "options.hpp"
 #include <iostream>
+#include "options.hpp"
+#include "results.hpp"
 
 options::options() {
     commandFlags = {
@@ -62,6 +63,10 @@ void options::setDefault() {
     words = true;
 }
 
+void options::setMaxResultWidth(const results& result) {
+    maxResultWidth = std::max(result.maxResultWidth, maxResultWidth);
+}
+
 OptionParseType options::toggleBytes() {
     bytes = true;
     return OptionParseType::setting;
@@ -81,7 +86,7 @@ OptionParseType options::toggleReadFile(const std::string& command) {
     int ind = command.find_first_of("=");
     fileList = command.substr(ind+1, command.length());
     readFile = true;
-    return OptionParseType::filename;
+    return OptionParseType::filetype;
 }
 
 OptionParseType options::toggleMaxLineLength() {
@@ -97,5 +102,5 @@ OptionParseType options::toggleWords() {
 OptionParseType options::toggleReadSTDIN() {
     readSTDIN = true;
     maxResultWidth = 7;
-    return OptionParseType::filename;
+    return OptionParseType::filetype;
 }
