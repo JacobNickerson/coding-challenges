@@ -24,6 +24,7 @@ void Parser::parseFile() {
         while (contentstream >> garbageCan) {
             result.words++;
         }
+        result.valid = true;
 }
 
 void Parser::closeFile() {

@@ -9,6 +9,7 @@ results& results::operator+=(const results& other) {
     this->bytes += other.bytes; 
     this->maxLength += other.maxLength; 
     this->maxResultWidth = std::max(this->maxResultWidth, other.maxResultWidth);
+    (this->valid && other.valid) ? this->valid = true : this->valid = false;
     return *this;
 }
 results& results::operator-=(const results& other) {
@@ -18,16 +19,19 @@ results& results::operator-=(const results& other) {
     this->bytes -= other.bytes; 
     this->maxLength -= other.maxLength; 
     this->maxResultWidth = std::max(this->maxResultWidth, other.maxResultWidth);
+    (this->valid && other.valid) ? this->valid = true : this->valid = false;
     return *this;
 }
 results operator+(const results& A, const results& B) {
     results temp(A.lines+B.lines, A.words+B.words, A.chars+B.chars, A.bytes+B.bytes, A.maxLength+B.maxLength);
     temp.setMaxResultWidth();
+    (A.valid && B.valid) ? temp.valid = true : temp.valid = false;
     return temp;
 }
 results operator-(const results& A, const results& B) {
     results temp(A.lines-B.lines, A.words-B.words, A.chars-B.chars, A.bytes-B.bytes, A.maxLength-B.maxLength);
     temp.setMaxResultWidth();
+    (A.valid && B.valid) ? temp.valid = true : temp.valid = false;
     return temp;
 }
 

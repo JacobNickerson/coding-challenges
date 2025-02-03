@@ -69,8 +69,8 @@ int main(int argc, char* argv[]) {
 			if (filename != "\0STDIN") {
 				auto file = std::make_unique<std::ifstream>(filename, std::ios::binary);
 				if (!file->is_open()) {
-					std::cerr << "cwcc: " << filename << ": No such file or directory\n";
-					if (!settings.readSTDIN) { resultsVector.push_back(results()); } // push an empty value to keep indices of results and their filenames the same
+					if (!settings.readSTDIN) { resultsVector.push_back(results()); } // push an empty result with valid initialized to false to keep indices of results and their filenames the same
+					else { std::cerr << "cwcc: " << filename << ": No such file or directory\n"; }  // if reading STDIN then error is printed immediately, otherwise printed in loop after processing all files
 					continue;
 				}
 				Parser parser(file, filename);
@@ -96,7 +96,9 @@ int main(int argc, char* argv[]) {
 		}
 		if (!settings.readSTDIN) {
 			for (unsigned int i{0}; i < resultsVector.size(); i++) {
-				resultsVector[i].print(settings, filenames[i]);
+				results& currResult = resultsVector[i];
+				if (currResult.valid) { currResult.print(settings, filenames[i]); }
+				else { std::cerr << "cwcc: " << filenames[i] << ": No such file or directory\n"; }
 			}
 		}
 		if (filenames.size() > 1) { total.print(settings, "total"); }

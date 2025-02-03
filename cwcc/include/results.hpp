@@ -10,6 +10,8 @@ struct results {
     size_t maxLength{0};
     size_t maxResultWidth{0};
 
+    bool valid = false; // used to determine if result was successfully populated, set by parser
+
     void print(const options& opt, std::string filename);
     void setMaxResultWidth();
 
