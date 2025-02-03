@@ -1,0 +1,19 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/clang++",
+      "-std=c++17",
+      "-Wall",
+      "-Wextra",
+      "-O2",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "build/lexer.o",
+      "src/lexer.cpp"
+    ],
+    "directory": "/home/jacobnickerson/SWE/coding-challenges/json-parser",
+    "file": "/home/jacobnickerson/SWE/coding-challenges/json-parser/src/lexer.cpp",
+    "output": "/home/jacobnickerson/SWE/coding-challenges/json-parser/build/lexer.o"
+  }
+]

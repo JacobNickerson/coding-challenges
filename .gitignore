@@ -5,3 +5,9 @@ cwcc/build
 cwcc/test.txt
 cwcc/main.sh
 
+#json-parser
+json-parser/.*
+json-parser/bin/
+json-parser/build
+json-parser/test.txt
+json-parser/main.sh
