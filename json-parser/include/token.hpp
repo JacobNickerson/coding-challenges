@@ -3,7 +3,7 @@
 #include <string>
 
 enum class TokenType {
-   OpenCurlyBracket, ClosedCurlyBracket, OpenSquareBracket, ClosedSquareBracket, Quote, Colon, Comma, String, NumberInt, NumberFloat,
+   OpenCurlyBracket, ClosedCurlyBracket, OpenSquareBracket, ClosedSquareBracket, Quote, Colon, Comma, String, NumberInt, NumberFloat, NumberScientific,
    BooleanTrue, BooleanFalse, Null, Invalid
 };
 

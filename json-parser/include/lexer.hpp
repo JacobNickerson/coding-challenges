@@ -4,12 +4,11 @@
 #include <unordered_map>
 #include <vector>
 #include <stack>
-#include <iostream> // TODO: Remove after debugging
 #include "token.hpp"
 
 enum class LexerState {
-    Start, OpenCurlyBracket, OpenKeyQuote, ClosedKeyQuote, Colon, OpenValueBracket, ClosedValueBracket, OpenValueQuote,
-    ClosedValueQuote, ValueNumber, Comma, Invalid, Finished 
+    Start, OpenCurlyBracket, ClosedCurleyBracket, OpenKeyQuote, ClosedKeyQuote, Colon,
+    OpenValueBracket, ClosedValueBracket, OpenValueQuote, PostValue, Comma, Invalid, Finished 
 };
 
 class Lexer {
@@ -23,16 +22,13 @@ class Lexer {
         // takes ownership of the vector by calling std::move in its constructor
         std::vector<Token>& exportTokens();
 
-        // TODO: Remove after testing
-        void testMatchValue(std::string value) {
-            matchValue(value);
-        }
-
         void readFile();
+
+        bool valid();
 
     private:
         LexerState state = LexerState::Start;
-        std::stack<LexerState> nestedState;
+        std::stack<LexerState> recursiveState;
         std::unique_ptr<std::fstream> file;
         std::vector<Token> tokens;
         std::unordered_map<std::string, TokenType> structuralChars;

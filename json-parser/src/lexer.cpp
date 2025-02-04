@@ -34,8 +34,8 @@ std::vector<Token>& Lexer::exportTokens() {
     return tokens;
 }
 
-void Lexer::readFile() {
-    if (!file->is_open()) {
+void Lexer::readFile() {              // GIANT FUNCTION
+    if (!file->is_open()) {           // TODO: Should probably break this down into a couple other functions
         state = LexerState::Invalid;
         return;
     }
@@ -52,7 +52,7 @@ void Lexer::readFile() {
                 }
                 if (*it == '{') {
                     state = LexerState::OpenCurlyBracket;
-                    nestedState.push(LexerState::OpenCurlyBracket);
+                    recursiveState.push(LexerState::OpenCurlyBracket);
                 }  else {
                     state = LexerState::Invalid;
                     return;
@@ -68,8 +68,8 @@ void Lexer::readFile() {
                 }
                 switch (*it) {
                     case '}':
-                        nestedState.pop();
-                        state = (nestedState.empty()) ? LexerState::Finished : nestedState.top();
+                        recursiveState.pop();
+                        state = (recursiveState.empty()) ? LexerState::Finished : recursiveState.top();
                         break;
                     case '"':
                         state = LexerState::OpenKeyQuote;
@@ -126,12 +126,12 @@ void Lexer::readFile() {
                     } 
                     case '{': {
                         state = LexerState::OpenCurlyBracket;
-                        nestedState.push(LexerState::OpenCurlyBracket);
+                        recursiveState.push(LexerState::OpenCurlyBracket);
                         break;
                     }
                     case '[': {
                         state = LexerState::OpenValueBracket;
-                        nestedState.push(LexerState::OpenValueBracket);
+                        recursiveState.push(LexerState::OpenValueBracket);
                         break;
                     }
                     default: {
@@ -142,56 +142,135 @@ void Lexer::readFile() {
                         std::string value(it,valueEnd);
                         std::cout << value << std::endl; // TODO: Remove debug print line
                         TokenType valueType = matchValue(value);
-                        switch (valueType) {
-                            case TokenType::NumberInt: {
-                                break;
-                            }
-                            case TokenType::NumberFloat: {
-                                break;
-                            }
-                            case TokenType::BooleanTrue: {
-                                break;
-                            }
-                            case TokenType::BooleanFalse: {
-                                break;
-                            }
-                            case TokenType::Null: {
-                                break;
-                            }
-                            default: {
-                                break;
-                            }
+                        if (valueType == TokenType::Invalid) {
+                            state = LexerState::Invalid;
+                            return;
                         }
+                        // TODO: Make the damn token!
                     }
                 }
                 break;
             }
+            // When we encounter an open bracket for a value, this indicates the start of an array
+            // an array contains any type of valid value, delimited by commas, and is terminated by a closing bracket ']'
             case LexerState::OpenValueBracket: {
-
-                break;
+                // TODO: Handle array parsing... hoo boy
             }
             case LexerState::ClosedValueBracket: {
 
-                break;
             }
+            // After encountering a quote as a value, it is handled very similarly to a key, except it produces a 
+            // String token and sets the state to a closed value quote
             case LexerState::OpenValueQuote: {
-
+                auto valueEnd = it;
+                while (valueEnd != end && *valueEnd != '"') {  // TODO: Handle escaped quotations
+                    ++valueEnd;
+                } 
+                if (valueEnd == end) {
+                    state = LexerState::Invalid;
+                    return;
+                }
+                std::string value(it,end);
+                std::cout << value << std::endl; // TODO: Remove debug line
+                TokenType type = matchValue(value);
+                if (type == TokenType::Invalid) {
+                    state = LexerState::Invalid;
+                    return;
+                }
+                // TODO: Handle tokenization of value
+                state = LexerState::PostValue;
                 break;
             }
-            case LexerState::ClosedValueQuote: {
-
+            // After closing a value, the behavior depends on our current recursiveState
+            // If we are inside an array, we can look for commas, denoting additional values inside the array
+            // or closing brackets
+            // If we are inside an object, we can look for commas, denoting additional key-value pairs or closing
+            // brackets
+            case LexerState::PostValue: {  // TODO: This entire section needs to be verified
+                if (recursiveState.empty()) {
+                    // This should never happen...
+                    std::cerr << "WTF RECURSIVESTATE IS EMPTY YO\n";
+                    state = LexerState::Invalid;
+                    return;
+                }
+                LexerState prevState = recursiveState.top(); 
+                switch(prevState) {
+                    case LexerState::OpenValueBracket: {
+                        if (!traverseWhitespace(it, end)) {
+                            state = LexerState::Invalid;
+                            return;
+                        }
+                        switch(*it) {
+                            case ']': {
+                                // TODO: Handle tokenization of arrays
+                                recursiveState.pop();
+                                break;
+                            }
+                            case ',': {
+                                state = LexerState::Comma;
+                                break;
+                            }
+                            default: { // TODO: Need to check if this is true
+                                state = LexerState::Invalid;
+                                return;
+                            }
+                        }
+                        break;
+                    }
+                    case LexerState::OpenCurlyBracket: {
+                        if (!traverseWhitespace(it, end)) {
+                            state = LexerState::Invalid;
+                            return;
+                        }
+                        switch(*it) {
+                            case '}': {
+                                // TODO: Handle tokenization of objects
+                                recursiveState.pop();
+                                break;
+                            }
+                            case ',': {
+                                state = LexerState::Comma;
+                                break;
+                            }
+                            default: { // TODO: Need to check if this is true
+                                state = LexerState::Invalid;
+                                return;
+                            }
+                        }
+                        break;
+                    }
+                    default: {
+                        // This should not be reachable...
+                        std::cerr << "WTF POSTVALUE CRINGE\n";
+                        state = LexerState::Invalid;
+                        return;
+                    }
+                }
                 break;
             }
-            case LexerState::ValueNumber: {
-
-                break;
+            // Upon validly reaching the closed curly bracket state, we close an object, and return to our previous recursiveState
+            // If there is no previous recursiveState, then we have finished our root object
+            case LexerState::ClosedCurleyBracket: {
+                recursiveState.pop();
+                state = recursiveState.top();
             }
-            case LexerState::Comma: {
-
+            // When we encounter a comma, the behavior varies slightly depending on if we are in
+            // an array or an object
+            // When in an array, we search for the next value, if we encounter closing brackets the array is invalid
+            // When in an object, we search for the next key, if we encounter closing brackets the object is invalid
+            // This is *almost* identical to the case of the open bracket state for each type
+            // However, in this next state if a closing bracket is encountered then the json is invalid
+            case LexerState::Comma: { // TODO: Handle hanging commas
+                if (recursiveState.empty()) {
+                    // This should never happen...
+                    std::cerr << "WTF RECURSIVESTATE IS EMPTY YO\n";
+                    state = LexerState::Invalid;
+                    return;
+                }
+                state = recursiveState.top();
                 break;
             }
             case LexerState::Invalid: {
-
                 return;
             }
             case LexerState::Finished: {
@@ -214,16 +293,25 @@ bool Lexer::traverseWhitespace(std::string::iterator& it, const std::string::ite
 
 TokenType Lexer::matchValue(const std::string& value) const {
     auto type = rawTokenTypes.find(value);
-    if (type != rawTokenTypes.end()) { return type->second; }
-    std::regex jsonNumber("-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?");
+    if (type != rawTokenTypes.end()) {
+        return type->second;
+    }
+    std::regex jsonNumber("-?(?:0|[1-9]\\d*)(\\.\\d+)?([eE][+-]?\\d+)?");
     std::smatch matches;
-    if (!std::regex_match(value, jsonNumber)) {
+    if (!std::regex_match(value, matches, jsonNumber)) {
         return TokenType::Invalid;
     }
-    for (auto& match : matches) { // TODO: Parse into floats/integers
-        if (match.matched) {
-            std::cout << match.str() << std::endl;
-        }
+    // matches[1] captures a decimal point
+    // matches[2] captures scientific notation
+    if (matches[2].matched) {
+        return TokenType::NumberScientific;
     }
-    return TokenType::Invalid;
+    if (matches[1].matched) {
+        return TokenType::NumberFloat;
+    }
+    return TokenType::NumberInt;
+}
+
+bool Lexer::valid() {
+    return state == LexerState::Finished;
 }
