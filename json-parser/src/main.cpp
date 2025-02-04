@@ -1,6 +1,7 @@
-#include "lexer.hpp"
 #include <fstream>
 #include <iostream>
+#include "lexer.hpp"
+#include "jason.hpp"
 
 int main(int argc, char* argv[]) {
 	for (int i{1}; i < argc; i++) {
@@ -11,7 +12,7 @@ int main(int argc, char* argv[]) {
 			return 1; 
 		}
 		Lexer tokenGenerator(filePtr);
-		tokenGenerator.exportTokens();
+		Jason lordJason(tokenGenerator.exportTokens());
 	}
 	return 0;
 }

@@ -3,14 +3,15 @@
 #include <string>
 
 enum class TokenType {
-   OpenCurlyBracket, ClosedCurlyBracket, OpenSquareBracket, ClosedSquareBracket, Quote, Comma, String, Number 
+   OpenCurlyBracket, ClosedCurlyBracket, OpenSquareBracket, ClosedSquareBracket, Quote, Colon, Comma, String, NumberInt, NumberFloat,
+   BooleanTrue, BooleanFalse, Null, Invalid
 };
 
 class Token {
     public:
-        Token(TokenType type, std::string value) : type(type), value(value) {}
+        Token(TokenType type, std::string lexeme) : type(type), lexeme(lexeme) {}
 
     private:
         TokenType type;
-        std::string value;
+        std::string lexeme; // 💅
 };

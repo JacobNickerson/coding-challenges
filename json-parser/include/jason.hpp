@@ -2,7 +2,6 @@
 
 #include "token.hpp"
 #include <vector>
-#include <stack>
 
 enum ReturnCode {
     Unprocessed = -1,
@@ -19,8 +18,12 @@ class Jason {
     public:
         Jason(std::vector<Token>& tokens);
 
+        void processTokens();
+
+        ReturnCode getStatus() const;
+
     private:
         std::vector<Token> tokens;
-        std::stack<JasonState> currentState;
-        ReturnCode status;
+        JasonState state;
+        ReturnCode status = ReturnCode::Unprocessed;
 }; 
