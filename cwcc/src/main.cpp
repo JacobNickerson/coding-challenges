@@ -27,7 +27,8 @@ int main(int argc, char* argv[]) {
 				break;
 		}
 	}
-	if (std::find(filenames.begin(), filenames.end(), "-") != filenames.end()) {
+	// - is parsed as a flag to handle setting a fixed line width, but it also represents reading from stdin
+	if (std::find(filenames.begin(), filenames.end(), "-") != filenames.end()) { 
 		settings.parseFlag("-");
 	}
 	if (defaultSettings) { settings.setDefault(); }
@@ -47,7 +48,6 @@ int main(int argc, char* argv[]) {
 	}
 
 	if (filenames.size() <= 0) {
-		results result;
 		auto STDIN = std::make_unique<std::ifstream>("/dev/stdin");
 		if (!STDIN->is_open()) {
 			std::cerr << "error: could not read stdin\n";
@@ -55,8 +55,7 @@ int main(int argc, char* argv[]) {
 		}
 		Parser stdinparser(STDIN, "");
 		stdinparser.parseFile();
-		result += stdinparser.results();
-		result.print(settings, "");
+		stdinparser.results().print(settings, "");
 	} 
 
 	if (filenames.size() > 0) {
