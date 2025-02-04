@@ -4,38 +4,36 @@
 #include <memory>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 
 int main(int argc, char* argv[]) {
 	options settings;
-	std::vector<std::string> filenames;
 	bool defaultSettings{true}; 
-	for (int i{1}; i < argc; i++) {
-		std::string arg(argv[i]);
-		if (arg.starts_with("-")) { // command flag
-			if (arg.length() == 1) {
-				filenames.push_back("\0STDIN"); 
-			}
-			OptionParseType returnCode = settings.parseFlag(arg);
-			switch(returnCode) {
-				case OptionParseType::invalid:
-					return 1;
-				case OptionParseType::helpmenu:
-					return 0;
-				case OptionParseType::setting:
-					defaultSettings = false;
-					break;
-				case OptionParseType::filetype:
-					break;
-			}
-		} else {
-			filenames.push_back(arg);
+	std::vector<std::string> args(argv+1, argv+argc);
+	auto flagsIt = std::stable_partition(args.begin(), args.end(), [](std::string s) { return s.starts_with("-") && s.length() > 1; });
+	std::vector<std::string> flags(args.begin(),flagsIt);
+	std::vector<std::string> filenames(flagsIt, args.end());
+	for (const auto& flag : flags) {
+		OptionParseType returnCode = settings.parseFlag(flag);
+		switch(returnCode) {
+			case OptionParseType::invalid:
+				return 1;
+			case OptionParseType::helpmenu:
+				return 0;
+			case OptionParseType::setting:
+				defaultSettings = false;
+				break;
+			case OptionParseType::filetype:
+				break;
 		}
+	}
+	if (std::find(filenames.begin(), filenames.end(), "-") != filenames.end()) {
+		settings.parseFlag("-");
 	}
 	if (defaultSettings) { settings.setDefault(); }
 	if (settings.readFile) {
 		if (filenames.size() > 0) {
 			std::string operand{filenames[0]};
-			if (filenames[0] == "\0STDIN") { operand = "-"; }
 			std::cerr << "cwcc: extra operand '" << operand << "'\n";
 			std::cerr << "file operands cannot be combined with --files0-from\n";
 			std::cerr << "Try 'cwcc --help' for more information.\n";
@@ -65,7 +63,7 @@ int main(int argc, char* argv[]) {
 		results total;
 		std::vector<results> resultsVector;
 		for (const auto& filename : filenames) {
-			if (filename != "\0STDIN") {
+			if (filename != "-") {
 				auto file = std::make_unique<std::ifstream>(filename, std::ios::binary);
 				if (!file->is_open()) {
 					if (!settings.readSTDIN) { resultsVector.push_back(results()); } // push an empty result with valid initialized to false to keep indices of results and their filenames the same
