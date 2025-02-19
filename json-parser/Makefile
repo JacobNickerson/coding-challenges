@@ -45,7 +45,7 @@ clang-format:
 
 # Clean up generated files
 clean:
-	rm -rf $(BIN_DIR) $(BUILD_DIR)
+	rm -r $(BIN_DIR)/* $(BUILD_DIR)/*
 
 .PHONY: all clean distclean clang-tidy clang-format cppcheck
 

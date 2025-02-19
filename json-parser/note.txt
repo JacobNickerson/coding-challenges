@@ -1,1 +1,0 @@
-Probably will need more states for the lexer, most notably to handle an object that is a value vs the root object, etc.
