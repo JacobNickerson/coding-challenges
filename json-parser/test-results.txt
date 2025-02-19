@@ -1,5 +1,0 @@
-json-parser test results
-
-json-examples/invalid/duplicate-keys.json | Valid JSON
-json-examples/json.org-tests/invalid/fail18.json | Valid JSON
-json-examples/json.org-tests/invalid/fail1.json | Valid JSON
