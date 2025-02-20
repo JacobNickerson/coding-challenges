@@ -1,36 +1,28 @@
 #include <cctype>
 #include <string>
-#include <fstream>
 #include <regex>
 #include "lexer.hpp"
 #include "token.hpp"
 
-Lexer::Lexer(std::unique_ptr<std::fstream>& file) : file(std::move(file)) {
-    structuralChars = {
-        {"{", TokenType::OpenCurlyBracket},
-        {"}", TokenType::ClosedCurlyBracket},
-        {"[", TokenType::OpenSquareBracket},
-        {"]", TokenType::ClosedSquareBracket},
-        {"\"", TokenType::Comma}
-    };
-
-    rawTokenTypes = {
-        {"null", TokenType::Null},
-        {"true", TokenType::BooleanTrue},
-        {"false", TokenType::BooleanFalse}
-    };
+Lexer::Lexer() : rawTokenTypes({
+    {"null", TokenType::Null},
+    {"true", TokenType::BooleanTrue},
+    {"false", TokenType::BooleanFalse}
+    }) {}
+Lexer::Lexer(std::fstream newFile) : Lexer() {
+    file = std::move(newFile);
 }
 
 std::vector<Token> Lexer::exportTokens() {
     return std::move(tokens);
 }
 
-void Lexer::readFile() {              // GIANT FUNCTION
-    if (!file->is_open()) {           // TODO: Should probably break this down into a couple other functions
-        status = LexerStatus::FileNotFoundError;  // TODO: Part 2, need to separate this into actual lexing and parsing, right now it does both
+void Lexer::readFile() {              
+    if (!file.is_open()) {           
+        status = LexerStatus::FileNotFoundError;  
         return;
     }
-    std::string content((std::istreambuf_iterator<char>(*file)), std::istreambuf_iterator<char>());
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     const auto end = content.end();
     for (auto it = content.begin(); it != content.end(); ++it) { 
         if (!traverseWhitespace(it, end)) {
@@ -66,7 +58,6 @@ void Lexer::readFile() {              // GIANT FUNCTION
             // Handle strings
             case '"': {
                 std::string lexeme(readString(it, end));
-                std::cout << "After reading a string, it is at: " << *it << std::endl;
                 if (lexeme == "\0") { return; }
                 tokens.push_back(Token(TokenType::String, lexeme));
                 break;
@@ -84,8 +75,6 @@ void Lexer::readFile() {              // GIANT FUNCTION
                 break;
             }
         }
-        auto top = tokens.back();
-        top.printTokenType();
     }
 }
 
@@ -100,6 +89,9 @@ TokenType Lexer::matchValue(const std::string& value) const {
     auto type = rawTokenTypes.find(value);
     if (type != rawTokenTypes.end()) {
         return type->second;
+    }
+    for (auto& pair : rawTokenTypes) {
+        std::cout << pair.first << std::endl;
     }
     std::regex jsonNumber("-?(?:0|[1-9]\\d*)(\\.\\d+)?([eE][+-]?\\d+)?");
     std::smatch matches;
@@ -117,7 +109,6 @@ TokenType Lexer::matchValue(const std::string& value) const {
     return TokenType::NumberInt;
 }
 
-// TODO: Move somewhere more appropriate
 bool isValidUnicodeEscape(const std::string& str) {
     std::regex unicodePattern(R"(\\u[0-9A-Fa-f]{4})"); // Matches \uXXXX (4 hex digits)
     return std::regex_search(str, unicodePattern);
@@ -183,6 +174,13 @@ std::string Lexer::readString(std::string::iterator& it, const std::string::iter
     return std::string(strBegin,it+1);
 }
 
-bool Lexer::valid() {
+bool Lexer::valid() const {
     return status == LexerStatus::Valid;
+}
+
+bool Lexer::openFile(std::fstream newFile) {
+    if (!newFile || !newFile.is_open()) { return false; }
+    if (file && file.is_open()) { file.close(); }
+    file = std::move(newFile);
+    return true;
 }

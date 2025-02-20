@@ -1,0 +1,34 @@
+json-parser test results
+
+json-examples/invalid/array-trailing-comma.json | Invalid JSON
+json-examples/invalid/bad-escaping.json | Invalid JSON
+json-examples/invalid/comments.json | Invalid JSON
+json-examples/invalid/duplicate-keys.json | Valid JSON
+json-examples/invalid/infinity.json | Invalid JSON
+json-examples/invalid/invalid-unicode.json | Invalid JSON
+json-examples/invalid/leading-zero.json | Invalid JSON
+json-examples/invalid/NaN.json | Invalid JSON
+json-examples/invalid/no-closing-bracket.json | Invalid JSON
+json-examples/invalid/object-trailing-comma.json | Invalid JSON
+json-examples/invalid/single-quotes.json | Invalid JSON
+json-examples/invalid/unquoted-key.json | Invalid JSON
+
+json-examples/valid/big-number.json | Valid JSON
+json-examples/valid/deep-nesting.json | Valid JSON
+json-examples/valid/empty-array.json | Valid JSON
+json-examples/valid/empty-object.json | Valid JSON
+json-examples/valid/escaped-chars.json | Valid JSON
+json-examples/valid/example.json | Valid JSON
+json-examples/valid/mixed-type-array.json | Valid JSON
+json-examples/valid/primitive-array.json | Valid JSON
+json-examples/valid/primitive-false.json | Valid JSON
+json-examples/valid/primitive-float.json | Valid JSON
+json-examples/valid/primitive-int.json | Valid JSON
+json-examples/valid/primitive-null.json | Valid JSON
+json-examples/valid/primitive-scientific-num.json | Valid JSON
+json-examples/valid/primitive-string.json | Valid JSON
+json-examples/valid/primitive-true.json | Valid JSON
+json-examples/valid/special-words-as-keys.json | Valid JSON
+json-examples/valid/unicode-as-keys.json | Valid JSON
+json-examples/valid/valid-unicode.json | Valid JSON
+json-examples/valid/white-space.json | Valid JSON

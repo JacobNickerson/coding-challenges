@@ -1,7 +1,4 @@
 #include <fstream>
-#include <iostream>
-#include <fstream>
-#include <algorithm>
 #include "lexer.hpp"
 #include "jason.hpp"
 
@@ -14,12 +11,12 @@ int main(int argc, char* argv[]) {
 	testResults << "json-parser test results\n\n";
 	for (int i{1}; i < argc; ++i) {
 		std::string filename(argv[i]);
-		auto filePtr = std::make_unique<std::fstream>(filename);
-		if (!filePtr->is_open()) {
+		std::fstream file(filename);
+		if (!file && !file.is_open()) {
 			std::cerr << "json-parser: error: " << filename << ": No such file\n";
 			continue;
 		}
-		Lexer jsonLexer(filePtr);
+		Lexer jsonLexer(std::move(file));
 		std::cout << "parsing: " << filename << std::endl;
 		jsonLexer.readFile();
 		// if (!jsonLexer.valid()) { continue; }

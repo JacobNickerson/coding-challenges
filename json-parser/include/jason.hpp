@@ -12,13 +12,13 @@ enum ReturnCode {
 };
 
 enum class JasonState {
-    Start, OpenSquareBracket, OpenCurlyBracket, Key, Colon, PostValue, Comma, Invalid, Finished 
+    Start, OpenSquareBracket, OpenCurlyBracket, Key, Colon, value, Comma, Invalid, Finished 
 };
 
 // Taken from lexer.cpp, may or may not be useful for adapting the old lexer method
 // enum class LexerStatus {
 //     Start, OpenCurlyBracket, ClosedCurleyBracket, OpenKeyQuote, ClosedKeyQuote, Colon,
-//     OpenValueBracket, ClosedValueBracket, OpenValueQuote, PostValue, Comma, Invalid, Finished 
+//     OpenValueBracket, ClosedValueBracket, OpenValueQuote, value, Comma, Invalid, Finished 
 // };
 
 class Jason {
@@ -29,16 +29,21 @@ class Jason {
 
         ReturnCode getStatus() const;
 
-        void debugPrintTokens() {
-            for (const auto& token : tokens) {
-                std::cout << "Token lexeme: " << token.getLexeme() << " | Token Type: "; token.printTokenType();
-            }
-        }
-
     private:
         std::vector<Token> tokens;
         // Used to handle the logic of nested objects
         std::stack<JasonState> recursiveState; 
         JasonState state = JasonState::Start;
         ReturnCode status = ReturnCode::Unprocessed;
+
+        // Methods used to handle state machine of json parsing
+        // It is assumed each method is called 
+        void handleStart(const TokenType& currTokenType);
+        void handleOpenCurlyBracket(const TokenType& currTokenType);
+        void handleKey(const TokenType& currTokenType);
+        void handleColon(const TokenType& currTokenType);
+        void handleValue(const TokenType& currTokenType);
+        void handleOpenSquareBracket(const TokenType& currTokenType);
+        void handleComma(const TokenType& currTokenType);
+
 }; 
