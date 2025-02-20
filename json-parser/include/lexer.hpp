@@ -17,7 +17,7 @@ class Lexer {
         Token generateToken(const std::string& input) const;
 
         // This function returns a std::move(tokens) and is intended
-        // to transfer ownership of the tokens to jason
+        // to transfer ownership of the tokens to Parser
         std::vector<Token> exportTokens();
 
         void readFile();

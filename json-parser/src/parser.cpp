@@ -1,82 +1,82 @@
-#include "jason.hpp"
+#include "parser.hpp"
 #include "token.hpp"
 
-Jason::Jason(std::vector<Token> tokens) : tokens(std::move(tokens)) {}
+Parser::Parser(std::vector<Token> tokens) : tokens(std::move(tokens)) {}
 
 // TODO: Remove debug printlines
-void Jason::processTokens() {  // processes the tokens to form a valid json
+void Parser::validate() {  // processes the tokens to form a valid json
     using namespace std;
     for (const auto& token : tokens) {
         auto currTokenType = token.getType();
         std::cout << "Processing token | Lexeme: " << token.getLexeme() << " | Type: "; token.printTokenType();
         if (currTokenType == TokenType::Invalid) {
-            state = JasonState::Invalid;
+            state = ParserState::Invalid;
             cout << "encountered invalid token\n";
             continue;
         }
         cout << "Current state: ";
         switch(state) {
-            case JasonState::Start: {
+            case ParserState::Start: {
                 cout << "start\n";
                 handleStart(currTokenType);
                 break;
             } 
-            case JasonState::OpenCurlyBracket: {
+            case ParserState::OpenCurlyBracket: {
                 cout << "open curly bracket\n";
                 handleOpenCurlyBracket(currTokenType);
                 break;
             }
-            case JasonState::Key: {
+            case ParserState::Key: {
                 cout << "key\n";
                 handleKey(currTokenType);
                 break; 
             }
-            case JasonState::Colon: {
+            case ParserState::Colon: {
                 cout << "colon\n";
                 handleColon(currTokenType);
                 break;
             }
-            case JasonState::value: {  // TODO: This entire section needs to be verified
+            case ParserState::value: {  // TODO: This entire section needs to be verified
                 cout << "value\n";
                 handleValue(currTokenType);
                 break;
             }
-            case JasonState::OpenSquareBracket: {
+            case ParserState::OpenSquareBracket: {
                 cout << "open square bracket\n";
                 handleOpenSquareBracket(currTokenType);
                 break;
             }
-            case JasonState::Comma: { 
+            case ParserState::Comma: { 
                 cout << "comma\n";
                 handleComma(currTokenType);
                 break;
             }
             // UH OH!!!
-            case JasonState::Invalid: {
+            case ParserState::Invalid: {
                 status = ReturnCode::SyntaxError;
                 return;
             }
             // If we finish (by closing the root bracket), but encounter tokens after this, json is invalid
-            case JasonState::Finished: {
+            case ParserState::Finished: {
                 status = ReturnCode::SyntaxError;
                 return;
             }
         }
     }
-    status = (state == JasonState::Finished) ? ReturnCode::Valid : ReturnCode::SyntaxError;
+    status = (state == ParserState::Finished) ? ReturnCode::Valid : ReturnCode::SyntaxError;
 }
 
 // When starting, look for any primitive
-void Jason::handleStart(const TokenType& currTokenType) {
+void Parser::handleStart(const TokenType& currTokenType) {
     switch(currTokenType) {
         case TokenType::OpenCurlyBracket: {
-            recursiveState.push(JasonState::OpenCurlyBracket);
-            state = JasonState::OpenCurlyBracket;
+            recursiveState.push(ParserState::OpenCurlyBracket);
+            state = ParserState::OpenCurlyBracket;
             break;
         }
         case TokenType::OpenSquareBracket: {
-            recursiveState.push(JasonState::OpenSquareBracket);
-            state = JasonState::OpenSquareBracket;
+            recursiveState.push(ParserState::OpenSquareBracket);
+            state = ParserState::OpenSquareBracket;
             break;
         }
         case TokenType::String: {
@@ -98,39 +98,39 @@ void Jason::handleStart(const TokenType& currTokenType) {
 
         }
         case TokenType::Null: {
-            state = JasonState::Finished;
+            state = ParserState::Finished;
             break;
         }
         default: {
-            state = JasonState::Invalid;
+            state = ParserState::Invalid;
             break;
         }
     }
 }
 // After encountering an open curly bracket, we can search for a key or the closing curly bracket
 // Other inputs are invalid
-void Jason::handleOpenCurlyBracket(const TokenType& currTokenType) {
+void Parser::handleOpenCurlyBracket(const TokenType& currTokenType) {
     switch (currTokenType) {
         case TokenType::ClosedCurlyBracket: {
             recursiveState.pop();
             // if stack is empty, we just closed the root object, otherwise, this object is a value
-            state = (recursiveState.empty()) ? JasonState::Finished : JasonState::value;
+            state = (recursiveState.empty()) ? ParserState::Finished : ParserState::value;
             break;                                                                                  
         }
         case TokenType::String: {
-            state = JasonState::Key;
+            state = ParserState::Key;
             break;
         }
         default: {
-            state = JasonState::Invalid;
+            state = ParserState::Invalid;
             break;
         }
     }
 }
 // After a key we search for a colon indicating the value associated with the key
 // If there is no colon, invalid
-void Jason::handleKey(const TokenType& currTokenType) {
-    state = (currTokenType == TokenType::Colon) ? JasonState::Colon : JasonState::Invalid;
+void Parser::handleKey(const TokenType& currTokenType) {
+    state = (currTokenType == TokenType::Colon) ? ParserState::Colon : ParserState::Invalid;
 }
 // After a colon, we look for a primitive data type, there are six types
 // Strings: Enclosed in quotes, which indicate the start of a string
@@ -139,7 +139,7 @@ void Jason::handleKey(const TokenType& currTokenType) {
 // Null: Represents no object
 // Object: Another json object, the start of which is indicated by an open curly bracket `{` 
 // Array: An ordered collection of values, the values of an array can be any valid value specified in this list, starts with `[`
-void Jason::handleColon(const TokenType& currTokenType) {
+void Parser::handleColon(const TokenType& currTokenType) {
     switch (currTokenType) {
         case TokenType::String: {
             // empty case to use fall through
@@ -160,21 +160,21 @@ void Jason::handleColon(const TokenType& currTokenType) {
 
         }
         case TokenType::Null: {
-            state = JasonState::value;
+            state = ParserState::value;
             break;
         }
         case TokenType::OpenCurlyBracket: {
-            state = JasonState::OpenCurlyBracket;
-            recursiveState.push(JasonState::OpenCurlyBracket);
+            state = ParserState::OpenCurlyBracket;
+            recursiveState.push(ParserState::OpenCurlyBracket);
             break;
         }
         case TokenType::OpenSquareBracket: {
-            state = JasonState::OpenSquareBracket;
-            recursiveState.push(JasonState::OpenSquareBracket);
+            state = ParserState::OpenSquareBracket;
+            recursiveState.push(ParserState::OpenSquareBracket);
             break;
         }
         default: {
-            state = JasonState::Invalid;
+            state = ParserState::Invalid;
             break;
         }
     }
@@ -184,49 +184,49 @@ void Jason::handleColon(const TokenType& currTokenType) {
 // or closing brackets
 // If we are inside an object, we can look for commas, denoting additional key-value pairs or closing
 // brackets
-void Jason::handleValue(const TokenType& currTokenType) {
+void Parser::handleValue(const TokenType& currTokenType) {
     if (recursiveState.empty()) {
         // This should never happen...
         std::cerr << "WTF RECURSIVESTATE IS EMPTY YO\n";
-        state = JasonState::Invalid;
+        state = ParserState::Invalid;
         return;
     }
-    JasonState prevState = recursiveState.top(); 
+    ParserState prevState = recursiveState.top(); 
     switch(prevState) {
-        case JasonState::OpenSquareBracket: {
+        case ParserState::OpenSquareBracket: {
             switch(currTokenType) {
                 case TokenType::ClosedSquareBracket: {
                     // TODO: This needs to be reviewed
                     recursiveState.pop();
-                    state = (recursiveState.empty()) ? JasonState::Finished : JasonState::value;
+                    state = (recursiveState.empty()) ? ParserState::Finished : ParserState::value;
                     break;
                 }
                 case TokenType::Comma: {
-                    state = JasonState::Comma;
+                    state = ParserState::Comma;
                     break;
                 }
                 default: { // TODO: Need to check if this is true
-                    state = JasonState::Invalid;
+                    state = ParserState::Invalid;
                     break;
                 }
             }
             break;
         }
-        case JasonState::OpenCurlyBracket: {
+        case ParserState::OpenCurlyBracket: {
             switch(currTokenType) {
                 case TokenType::ClosedCurlyBracket: {
                     // TODO: This needs to be reviewed
                     recursiveState.pop();
                     // if stack is empty, we just closed the root object, otherwise, this object is a value
-                    state = (recursiveState.empty()) ? JasonState::Finished : JasonState::value;
+                    state = (recursiveState.empty()) ? ParserState::Finished : ParserState::value;
                     break;
                 }
                 case TokenType::Comma: {
-                    state = JasonState::Comma;
+                    state = ParserState::Comma;
                     break;
                 }
                 default: { // TODO: Need to check if this is true
-                    state = JasonState::Invalid;
+                    state = ParserState::Invalid;
                     break;
                 }
             }
@@ -235,29 +235,29 @@ void Jason::handleValue(const TokenType& currTokenType) {
         default: {
             // This should not be reachable...
             std::cerr << "WTF value CRINGE\n";
-            state = JasonState::Invalid;
+            state = ParserState::Invalid;
             break;
         }
     }
 }
 // When we encounter an open bracket, this indicates the start of an array
 // An array contains any type of valid primitive data type, delimited by commas, and is terminated by a closing bracket ']'
-void Jason::handleOpenSquareBracket(const TokenType& currTokenType) {
+void Parser::handleOpenSquareBracket(const TokenType& currTokenType) {
     switch(currTokenType) {
         case TokenType::ClosedSquareBracket: {
             // TODO: This needs to be reviewed
             recursiveState.pop();
-            state = (recursiveState.empty()) ? JasonState::Finished : JasonState::value;
+            state = (recursiveState.empty()) ? ParserState::Finished : ParserState::value;
             break;
         }
         case TokenType::OpenSquareBracket: {
-            recursiveState.push(JasonState::OpenSquareBracket);
-            state = JasonState::OpenSquareBracket;
+            recursiveState.push(ParserState::OpenSquareBracket);
+            state = ParserState::OpenSquareBracket;
             break;
         }
         case TokenType::OpenCurlyBracket: {
-            recursiveState.push(JasonState::OpenCurlyBracket);
-            state = JasonState::OpenCurlyBracket;
+            recursiveState.push(ParserState::OpenCurlyBracket);
+            state = ParserState::OpenCurlyBracket;
             break;
         }
         case TokenType::String: {
@@ -279,11 +279,11 @@ void Jason::handleOpenSquareBracket(const TokenType& currTokenType) {
 
         }
         case TokenType::Null: {
-            state = JasonState::value;
+            state = ParserState::value;
             break;
         }
         default: {
-            state = JasonState::Invalid;
+            state = ParserState::Invalid;
             break;
         }
     }
@@ -294,29 +294,29 @@ void Jason::handleOpenSquareBracket(const TokenType& currTokenType) {
 // When in an object, we search for the next key (must be a string), anything else is invalid
 // This is *almost* identical to the case of the open bracket state for each type
 // However, in this next state if a closing bracket is encountered then the json is invalid
-void Jason::handleComma(const TokenType& currTokenType) {    
+void Parser::handleComma(const TokenType& currTokenType) {    
     if (recursiveState.empty()) {
         // This should never happen...
         std::cerr << "WTF RECURSIVESTATE IS EMPTY YO\n";
-        state = JasonState::Invalid;
+        state = ParserState::Invalid;
         return;
     }
     auto prevState = recursiveState.top();
     switch (prevState) {
-        case JasonState::OpenCurlyBracket: {
-            state = (currTokenType == TokenType::String) ? JasonState::Key : JasonState::Invalid;
+        case ParserState::OpenCurlyBracket: {
+            state = (currTokenType == TokenType::String) ? ParserState::Key : ParserState::Invalid;
             break;
         }
-        case JasonState::OpenSquareBracket: {
+        case ParserState::OpenSquareBracket: {
             switch(currTokenType) {
                 case TokenType::OpenCurlyBracket: {
-                    recursiveState.push(JasonState::OpenCurlyBracket);
-                    state = JasonState::OpenCurlyBracket;
+                    recursiveState.push(ParserState::OpenCurlyBracket);
+                    state = ParserState::OpenCurlyBracket;
                     break;
                 }
                 case TokenType::OpenSquareBracket: {
-                    recursiveState.push(JasonState::OpenSquareBracket);
-                    state = JasonState::OpenSquareBracket;
+                    recursiveState.push(ParserState::OpenSquareBracket);
+                    state = ParserState::OpenSquareBracket;
                     break;
                 }
                 case TokenType::String: {
@@ -338,11 +338,11 @@ void Jason::handleComma(const TokenType& currTokenType) {
 
                 }
                 case TokenType::Null: {
-                    state = JasonState::value;
+                    state = ParserState::value;
                     break;
                 }
                 default: {
-                    state = JasonState::Invalid;
+                    state = ParserState::Invalid;
                     break;
                 }
             }
@@ -350,12 +350,12 @@ void Jason::handleComma(const TokenType& currTokenType) {
         }
         default: {
             // Should be unreachable
-            state = JasonState::Invalid;
+            state = ParserState::Invalid;
             break;
         }
     }
 }
 
-ReturnCode Jason::getStatus() const {
+ReturnCode Parser::getStatus() const {
     return status;
 }

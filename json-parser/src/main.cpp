@@ -1,6 +1,6 @@
 #include <fstream>
 #include "lexer.hpp"
-#include "jason.hpp"
+#include "parser.hpp"
 
 int main(int argc, char* argv[]) {
 	if (argc < 2) {
@@ -20,8 +20,8 @@ int main(int argc, char* argv[]) {
 		std::cout << "parsing: " << filename << std::endl;
 		jsonLexer.readFile();
 		// if (!jsonLexer.valid()) { continue; }
-		Jason jsonParser(jsonLexer.exportTokens());
-		jsonParser.processTokens();
+		Parser jsonParser(jsonLexer.exportTokens());
+		jsonParser.validate();
 		// auto localFileName = std::string(std::find(filename.rbegin(),filename.rend(), '/').base(), filename.end()); // holee shit batman
 		testResults << filename << " | ";
 		if (jsonParser.getStatus() == ReturnCode::Valid) {
