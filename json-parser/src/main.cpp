@@ -21,18 +21,20 @@ int main(int argc, char* argv[]) {
 		std::cout << "parsing: " << filename << std::endl;
 		jsonLexer.readFile();
 		Parser jsonParser(jsonLexer.exportTokens());
+		auto test = jsonParser.generate();
+		test.print();
 		// auto localFileName = std::string(std::find(filename.rbegin(),filename.rend(), '/').base(), filename.end()); // holee shit batman
-		testResults << filename << " | ";
-		if (jsonParser.validate()) {
-			std::cout << "Valid json!" << std::endl;
-			testResults << "Valid JSON\n";
-			jsonParser.reset();
-			Jason test = jsonParser.generate();
-		} else {
-			std::cout << "Invalid json..." << std::endl;
-			testResults << "Invalid JSON\n";
-		}
-		std::cout << "\n\n\n";
+		// testResults << filename << " | ";
+		// if (jsonParser.validate()) {
+		// 	std::cout << "Valid json!" << std::endl;
+		// 	testResults << "Valid JSON\n";
+		// 	jsonParser.reset();
+		// 	Jason test = jsonParser.generate();
+		// } else {
+		// 	std::cout << "Invalid json..." << std::endl;
+		// 	testResults << "Invalid JSON\n";
+		// }
+		// std::cout << "\n\n\n";
 	}
 	testResults.close();
 	return 0;

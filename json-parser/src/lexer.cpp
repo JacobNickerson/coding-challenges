@@ -90,9 +90,6 @@ TokenType Lexer::matchValue(const std::string& value) const {
     if (type != rawTokenTypes.end()) {
         return type->second;
     }
-    for (auto& pair : rawTokenTypes) {
-        std::cout << pair.first << std::endl;
-    }
     std::regex jsonNumber("-?(?:0|[1-9]\\d*)(\\.\\d+)?([eE][+-]?\\d+)?");
     std::smatch matches;
     if (!std::regex_match(value, matches, jsonNumber)) {

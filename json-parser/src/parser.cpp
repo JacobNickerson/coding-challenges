@@ -128,7 +128,7 @@ Jason Parser::generate() {
         token.printTokenType();
     }
     status = (state == ParserState::Finished) ? ReturnCode::Valid : ReturnCode::SyntaxError;
-    return (status == ReturnCode::Valid) ? Jason{} : std::move(root); 
+    return (status == ReturnCode::Valid) ? std::move(root) : std::move(root); 
 }
 
 ReturnCode Parser::getStatus() const {
@@ -145,7 +145,7 @@ void Parser::handleStart(const Token& currToken, Jason*& currObj) {
             recursiveState.push(ParserState::OpenCurlyBracket);
             state = ParserState::OpenCurlyBracket;
             if (currObj) {
-                currObj->data = std::unordered_map<std::string, std::unique_ptr<Jason>>{};
+                currObj->data = std::unordered_map<std::string, std::shared_ptr<Jason>>{};
             }
             break;
         }
@@ -153,7 +153,7 @@ void Parser::handleStart(const Token& currToken, Jason*& currObj) {
             recursiveState.push(ParserState::OpenSquareBracket);
             state = ParserState::OpenSquareBracket;
             if (currObj) {
-                currObj->data = std::vector<std::unique_ptr<Jason>>{};
+                currObj->data = std::vector<std::shared_ptr<Jason>>{};
             }
             break;
         }
@@ -167,7 +167,6 @@ void Parser::handleStart(const Token& currToken, Jason*& currObj) {
         case TokenType::NumberInt: {
             state = ParserState::Finished;
             if (currObj) {
-                            std::cout << "Lexeme: " << currToken.getLexeme() << std::endl;
                 currObj->data = std::stoi(currToken.getLexeme()); 
             }
             break;
@@ -229,7 +228,7 @@ void Parser::handleOpenCurlyBracket(const Token& currToken, Jason*& currObj) {
         }
         case TokenType::String: {
             state = ParserState::Key;
-            if (currObj) { if (!std::holds_alternative<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data)) {
+            if (currObj) { if (!std::holds_alternative<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleOpenCurlyBracket()\n");
                 } else {
                     lastKey = currToken.getLexeme();
@@ -261,13 +260,13 @@ void Parser::handleColon(const Token& currToken, Jason*& currObj) {
         case TokenType::String: {
             state = ParserState::value;
             if (currObj) {
-                if (!std::holds_alternative<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleColon()\n");
                 } else {
                     // Verbose but we're just taking the map stored in our curr jason and creating a new jason to map the key to with a parent pointer pointing to our curr jason
                     // then setting the new jason's value to our current token's lexeme
-                    auto& objPairs = std::get<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data);
-                    objPairs[lastKey] = std::make_unique<Jason>(Jason(currObj)); 
+                    auto& objPairs = std::get<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data);
+                    objPairs[lastKey] = std::make_shared<Jason>(Jason(currObj)); 
                     objPairs[lastKey]->data = currToken.getLexeme();
                 }
             }
@@ -276,12 +275,11 @@ void Parser::handleColon(const Token& currToken, Jason*& currObj) {
         case TokenType::NumberInt: {
             state = ParserState::value;
             if (currObj) {
-                if (!std::holds_alternative<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleColon()\n");
                 } else {
-                    auto& objPairs = std::get<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data);
-                    objPairs[lastKey] = std::make_unique<Jason>(Jason(currObj)); 
-                            std::cout << "Lexeme: " << currToken.getLexeme() << std::endl;
+                    auto& objPairs = std::get<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data);
+                    objPairs[lastKey] = std::make_shared<Jason>(Jason(currObj)); 
                     objPairs[lastKey]->data = std::stoi(currToken.getLexeme());
                 }
             }
@@ -290,11 +288,11 @@ void Parser::handleColon(const Token& currToken, Jason*& currObj) {
         case TokenType::NumberFloat: {
             state = ParserState::value;
             if (currObj) {
-                if (!std::holds_alternative<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleColon()\n");
                 } else {
-                    auto& objPairs = std::get<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data);
-                    objPairs[lastKey] = std::make_unique<Jason>(Jason(currObj)); 
+                    auto& objPairs = std::get<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data);
+                    objPairs[lastKey] = std::make_shared<Jason>(Jason(currObj)); 
                     objPairs[lastKey]->data = std::stof(currToken.getLexeme());
                 }
             }
@@ -304,11 +302,11 @@ void Parser::handleColon(const Token& currToken, Jason*& currObj) {
             // TODO: Add some sort of flag to save state as a scientific number
             state = ParserState::value;
             if (currObj) {
-                if (!std::holds_alternative<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleColon()\n");
                 } else {
-                    auto& objPairs = std::get<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data);
-                    objPairs[lastKey] = std::make_unique<Jason>(Jason(currObj)); 
+                    auto& objPairs = std::get<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data);
+                    objPairs[lastKey] = std::make_shared<Jason>(Jason(currObj)); 
                     objPairs[lastKey]->data = std::stof(currToken.getLexeme());
                 }
             }
@@ -317,11 +315,11 @@ void Parser::handleColon(const Token& currToken, Jason*& currObj) {
         case TokenType::BooleanFalse: {
             state = ParserState::value;
             if (currObj) {
-                if (!std::holds_alternative<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleColon()\n");
                 } else {
-                    auto& objPairs = std::get<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data);
-                    objPairs[lastKey] = std::make_unique<Jason>(Jason(currObj)); 
+                    auto& objPairs = std::get<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data);
+                    objPairs[lastKey] = std::make_shared<Jason>(Jason(currObj)); 
                     objPairs[lastKey]->data = false;
                 }
             }
@@ -330,11 +328,11 @@ void Parser::handleColon(const Token& currToken, Jason*& currObj) {
         case TokenType::BooleanTrue: {
             state = ParserState::value;
             if (currObj) {
-                if (!std::holds_alternative<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleColon()\n");
                 } else {
-                    auto& objPairs = std::get<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data);
-                    objPairs[lastKey] = std::make_unique<Jason>(Jason(currObj)); 
+                    auto& objPairs = std::get<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data);
+                    objPairs[lastKey] = std::make_shared<Jason>(Jason(currObj)); 
                     objPairs[lastKey]->data = true;
                 }
             }
@@ -343,11 +341,11 @@ void Parser::handleColon(const Token& currToken, Jason*& currObj) {
         case TokenType::Null: {
             state = ParserState::value;
             if (currObj) {
-                if (!std::holds_alternative<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleColon()\n");
                 } else {
-                    auto& objPairs = std::get<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data);
-                    objPairs[lastKey] = std::make_unique<Jason>(Jason(currObj)); 
+                    auto& objPairs = std::get<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data);
+                    objPairs[lastKey] = std::make_shared<Jason>(Jason(currObj)); 
                     objPairs[lastKey]->data = nullptr;
                 }
             }
@@ -357,12 +355,12 @@ void Parser::handleColon(const Token& currToken, Jason*& currObj) {
             state = ParserState::OpenCurlyBracket;
             recursiveState.push(ParserState::OpenCurlyBracket);
             if (currObj) {
-                if (!std::holds_alternative<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleColon()\n");
                 } else {
-                    auto& objPairs = std::get<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data);
-                    objPairs[lastKey] = std::make_unique<Jason>(Jason(currObj)); 
-                    objPairs[lastKey]->data = std::unordered_map<std::string, std::unique_ptr<Jason>>{};
+                    auto& objPairs = std::get<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data);
+                    objPairs[lastKey] = std::make_shared<Jason>(Jason(currObj)); 
+                    objPairs[lastKey]->data = std::unordered_map<std::string, std::shared_ptr<Jason>>{};
                     // Set the new current object to be the object that this key refers to
                     currObj = objPairs[lastKey].get();
                 }
@@ -373,12 +371,12 @@ void Parser::handleColon(const Token& currToken, Jason*& currObj) {
             state = ParserState::OpenSquareBracket;
             recursiveState.push(ParserState::OpenSquareBracket);
             if (currObj) {
-                if (!std::holds_alternative<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleColon()\n");
                 } else {
-                    auto& objPairs = std::get<std::unordered_map<std::string, std::unique_ptr<Jason>>>(currObj->data);
-                    objPairs[lastKey] = std::make_unique<Jason>(Jason(currObj)); 
-                    objPairs[lastKey]->data = std::vector<std::unique_ptr<Jason>>{};
+                    auto& objPairs = std::get<std::unordered_map<std::string, std::shared_ptr<Jason>>>(currObj->data);
+                    objPairs[lastKey] = std::make_shared<Jason>(Jason(currObj)); 
+                    objPairs[lastKey]->data = std::vector<std::shared_ptr<Jason>>{};
                     // Set the new current object to be the array that this key refers to
                     currObj = objPairs[lastKey].get();
                 }
@@ -470,12 +468,12 @@ void Parser::handleOpenSquareBracket(const Token& currToken, Jason*& currObj) {
             recursiveState.push(ParserState::OpenSquareBracket);
             state = ParserState::OpenSquareBracket;
             if (currObj) {
-                if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                 } else {
-                    auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                    arr.push_back(std::make_unique<Jason>(currObj));
-                    arr.back()->data = std::vector<std::unique_ptr<Jason>>{};
+                    auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                    arr.push_back(std::make_shared<Jason>(currObj));
+                    arr.back()->data = std::vector<std::shared_ptr<Jason>>{};
                     // Set the new current object to be the new array that was pushed into the current array
                     currObj = arr.back().get(); 
                 }
@@ -486,12 +484,12 @@ void Parser::handleOpenSquareBracket(const Token& currToken, Jason*& currObj) {
             recursiveState.push(ParserState::OpenCurlyBracket);
             state = ParserState::OpenCurlyBracket;
             if (currObj) {
-                if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                 } else {
-                    auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                    arr.push_back(std::make_unique<Jason>(currObj));
-                    arr.back()->data = std::unordered_map<std::string, std::unique_ptr<Jason>>{};  
+                    auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                    arr.push_back(std::make_shared<Jason>(currObj));
+                    arr.back()->data = std::unordered_map<std::string, std::shared_ptr<Jason>>{};  
                     // Set the new current object to be the new map that was pushed into the current array
                     currObj = arr.back().get(); 
                 }
@@ -501,11 +499,11 @@ void Parser::handleOpenSquareBracket(const Token& currToken, Jason*& currObj) {
         case TokenType::String: {
             state = ParserState::value;
             if (currObj) {
-                if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                 } else {
-                    auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                    arr.push_back(std::make_unique<Jason>(currObj));
+                    auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                    arr.push_back(std::make_shared<Jason>(currObj));
                     arr.back()->data = currToken.getLexeme(); 
                 }
             }
@@ -514,11 +512,11 @@ void Parser::handleOpenSquareBracket(const Token& currToken, Jason*& currObj) {
         case TokenType::NumberInt: {
             state = ParserState::value;
             if (currObj) {
-                if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                 } else {
-                    auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                    arr.push_back(std::make_unique<Jason>(currObj));
+                    auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                    arr.push_back(std::make_shared<Jason>(currObj));
                             std::cout << "Lexeme: " << currToken.getLexeme() << std::endl;
                     arr.back()->data = std::stoi(currToken.getLexeme()); 
                 }
@@ -528,11 +526,11 @@ void Parser::handleOpenSquareBracket(const Token& currToken, Jason*& currObj) {
         case TokenType::NumberFloat: {
             state = ParserState::value;
             if (currObj) {
-                if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                 } else {
-                    auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                    arr.push_back(std::make_unique<Jason>(currObj));
+                    auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                    arr.push_back(std::make_shared<Jason>(currObj));
                     arr.back()->data = std::stof(currToken.getLexeme()); 
                 }
             }
@@ -542,11 +540,11 @@ void Parser::handleOpenSquareBracket(const Token& currToken, Jason*& currObj) {
             // TODO: Add some type of flag to save scientific state
             state = ParserState::value;
             if (currObj) {
-                if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                 } else {
-                    auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                    arr.push_back(std::make_unique<Jason>(currObj));
+                    auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                    arr.push_back(std::make_shared<Jason>(currObj));
                     arr.back()->data = std::stof(currToken.getLexeme()); 
                 }
             }
@@ -555,11 +553,11 @@ void Parser::handleOpenSquareBracket(const Token& currToken, Jason*& currObj) {
         case TokenType::BooleanFalse: {
             state = ParserState::value;
             if (currObj) {
-                if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                 } else {
-                    auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                    arr.push_back(std::make_unique<Jason>(currObj));
+                    auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                    arr.push_back(std::make_shared<Jason>(currObj));
                     arr.back()->data = false; 
                 }
             }
@@ -568,11 +566,11 @@ void Parser::handleOpenSquareBracket(const Token& currToken, Jason*& currObj) {
         case TokenType::BooleanTrue: {
             state = ParserState::value;
             if (currObj) {
-                if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                 } else {
-                    auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                    arr.push_back(std::make_unique<Jason>(currObj));
+                    auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                    arr.push_back(std::make_shared<Jason>(currObj));
                     arr.back()->data = true; 
                 }
             }
@@ -581,11 +579,11 @@ void Parser::handleOpenSquareBracket(const Token& currToken, Jason*& currObj) {
         case TokenType::Null: {
             state = ParserState::value;
             if (currObj) {
-                if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                     throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                 } else {
-                    auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                    arr.push_back(std::make_unique<Jason>(currObj));
+                    auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                    arr.push_back(std::make_shared<Jason>(currObj));
                     arr.back()->data = nullptr; 
                 }
             }
@@ -625,12 +623,12 @@ void Parser::handleComma(const Token& currToken, Jason*& currObj) {
                     recursiveState.push(ParserState::OpenCurlyBracket);
                     state = ParserState::OpenCurlyBracket;
                     if (currObj) {
-                        if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                        if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                             throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                         } else {
-                            auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                            arr.push_back(std::make_unique<Jason>(currObj));
-                            arr.back()->data = std::unordered_map<std::string, std::unique_ptr<Jason>>();  
+                            auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                            arr.push_back(std::make_shared<Jason>(currObj));
+                            arr.back()->data = std::unordered_map<std::string, std::shared_ptr<Jason>>();  
                             // Set the new current object to be the new map that was pushed into the current array
                             currObj = arr.back().get(); 
                         }
@@ -641,12 +639,12 @@ void Parser::handleComma(const Token& currToken, Jason*& currObj) {
                     recursiveState.push(ParserState::OpenSquareBracket);
                     state = ParserState::OpenSquareBracket;
                     if (currObj) {
-                        if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                        if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                             throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                         } else {
-                            auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                            arr.push_back(std::make_unique<Jason>(currObj));
-                            arr.back()->data = std::vector<std::unique_ptr<Jason>>();  
+                            auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                            arr.push_back(std::make_shared<Jason>(currObj));
+                            arr.back()->data = std::vector<std::shared_ptr<Jason>>();  
                             // Set the new current object to be the new array that was pushed into the current array
                             currObj = arr.back().get(); 
                         }
@@ -656,11 +654,11 @@ void Parser::handleComma(const Token& currToken, Jason*& currObj) {
                 case TokenType::String: {
                     state = ParserState::value;
                     if (currObj) {
-                        if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                        if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                             throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                         } else {
-                            auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                            arr.push_back(std::make_unique<Jason>(currObj));
+                            auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                            arr.push_back(std::make_shared<Jason>(currObj));
                             arr.back()->data = currToken.getLexeme();  
                         }
                     }
@@ -669,11 +667,11 @@ void Parser::handleComma(const Token& currToken, Jason*& currObj) {
                 case TokenType::NumberInt: {
                     state = ParserState::value;
                     if (currObj) {
-                        if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                        if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                             throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                         } else {
-                            auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                            arr.push_back(std::make_unique<Jason>(currObj));
+                            auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                            arr.push_back(std::make_shared<Jason>(currObj));
                             std::cout << "Lexeme: " << currToken.getLexeme() << std::endl;
                             arr.back()->data = std::stoi(currToken.getLexeme());  
                         }
@@ -682,11 +680,11 @@ void Parser::handleComma(const Token& currToken, Jason*& currObj) {
                 case TokenType::NumberFloat: {
                     state = ParserState::value;
                     if (currObj) {
-                        if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                        if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                             throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                         } else {
-                            auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                            arr.push_back(std::make_unique<Jason>(currObj));
+                            auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                            arr.push_back(std::make_shared<Jason>(currObj));
                             arr.back()->data = std::stof(currToken.getLexeme());  
                         }
                     }
@@ -695,11 +693,11 @@ void Parser::handleComma(const Token& currToken, Jason*& currObj) {
                     // TODO: Add sci flag
                     state = ParserState::value;
                     if (currObj) {
-                        if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                        if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                             throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                         } else {
-                            auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                            arr.push_back(std::make_unique<Jason>(currObj));
+                            auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                            arr.push_back(std::make_shared<Jason>(currObj));
                             arr.back()->data = std::stof(currToken.getLexeme());  
                         }
                     }
@@ -707,11 +705,11 @@ void Parser::handleComma(const Token& currToken, Jason*& currObj) {
                 case TokenType::BooleanFalse: {
                     state = ParserState::value;
                     if (currObj) {
-                        if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                        if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                             throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                         } else {
-                            auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                            arr.push_back(std::make_unique<Jason>(currObj));
+                            auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                            arr.push_back(std::make_shared<Jason>(currObj));
                             arr.back()->data = false; 
                         }
                     }
@@ -719,11 +717,11 @@ void Parser::handleComma(const Token& currToken, Jason*& currObj) {
                 case TokenType::BooleanTrue: {
                     state = ParserState::value;
                     if (currObj) {
-                        if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                        if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                             throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                         } else {
-                            auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                            arr.push_back(std::make_unique<Jason>(currObj));
+                            auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                            arr.push_back(std::make_shared<Jason>(currObj));
                             arr.back()->data = true; 
                         }
                     }
@@ -731,11 +729,11 @@ void Parser::handleComma(const Token& currToken, Jason*& currObj) {
                 case TokenType::Null: {
                     state = ParserState::value;
                     if (currObj) {
-                        if (!std::holds_alternative<std::vector<std::unique_ptr<Jason>>>(currObj->data)) {
+                        if (!std::holds_alternative<std::vector<std::shared_ptr<Jason>>>(currObj->data)) {
                             throw std::runtime_error("STATE MACHINE BROKE IN handleOpenSquareBracket()\n");
                         } else {
-                            auto& arr = std::get<std::vector<std::unique_ptr<Jason>>>(currObj->data);
-                            arr.push_back(std::make_unique<Jason>(currObj));
+                            auto& arr = std::get<std::vector<std::shared_ptr<Jason>>>(currObj->data);
+                            arr.push_back(std::make_shared<Jason>(currObj));
                             arr.back()->data = nullptr;  
                         }
                     }
