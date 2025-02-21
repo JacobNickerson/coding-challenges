@@ -6,17 +6,17 @@
 #include <unordered_map>
 #include <memory>
 
-class Jason {
-    public:
-
-    private:
-        std::variant<std::string,
-        int,
-        float,
-        bool,
-        std::nullptr_t,
-        std::vector<std::unique_ptr<Jason>>,
-        std::unordered_map<std::string,std::unique_ptr<Jason>>> data;
+struct Jason {
+    Jason() {}
+    Jason(Jason* parent) : parent(parent) {}
+    std::variant<std::string,
+                 int,
+                 float,
+                 bool,
+                 std::nullptr_t,
+                 std::vector<std::unique_ptr<Jason>>,
+                 std::unordered_map<std::string, std::unique_ptr<Jason>>> data = nullptr;
+    Jason* parent = nullptr;
 };
 
 

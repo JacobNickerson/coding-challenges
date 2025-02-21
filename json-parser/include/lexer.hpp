@@ -24,6 +24,11 @@ class Lexer {
 
         bool valid() const;
 
+        void debug() {
+            for (auto& token : tokens) {
+                token.printTokenType();
+            }
+        }
         // It's assumed that this is called after the tokens have been exported and the tokens vector is empty.
         // Checks it the newFile is valid and open, if so closes the old file, changes ownership to the new file and returns true.
         // Otherwise, returns false and keeps ownership of the old file, without closing.

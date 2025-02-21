@@ -111,5 +111,5 @@ void Token::printTokenType() const {
             break;
         }
     }
-    cout << endl;
+    cout << " | " << lexeme << endl;
 }

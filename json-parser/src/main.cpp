@@ -9,6 +9,7 @@ int main(int argc, char* argv[]) {
 	}
 	std::ofstream testResults("test-results.txt");
 	testResults << "json-parser test results\n\n";
+	Lexer jsonLexer;
 	for (int i{1}; i < argc; ++i) {
 		std::string filename(argv[i]);
 		std::fstream file(filename);
@@ -16,17 +17,17 @@ int main(int argc, char* argv[]) {
 			std::cerr << "json-parser: error: " << filename << ": No such file\n";
 			continue;
 		}
-		Lexer jsonLexer(std::move(file));
+		jsonLexer.openFile(std::move(file));
 		std::cout << "parsing: " << filename << std::endl;
 		jsonLexer.readFile();
-		// if (!jsonLexer.valid()) { continue; }
 		Parser jsonParser(jsonLexer.exportTokens());
-		jsonParser.validate();
 		// auto localFileName = std::string(std::find(filename.rbegin(),filename.rend(), '/').base(), filename.end()); // holee shit batman
 		testResults << filename << " | ";
-		if (jsonParser.getStatus() == ReturnCode::Valid) {
+		if (jsonParser.validate()) {
 			std::cout << "Valid json!" << std::endl;
 			testResults << "Valid JSON\n";
+			jsonParser.reset();
+			Jason test = jsonParser.generate();
 		} else {
 			std::cout << "Invalid json..." << std::endl;
 			testResults << "Invalid JSON\n";
